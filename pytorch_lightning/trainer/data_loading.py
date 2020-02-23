@@ -227,7 +227,7 @@ class TrainerDataLoadingMixin(ABC):
         # on TPUs load each dataloader only on process 0
         # this will trigger the data downloads
         if self.use_tpu and XLA_AVAILABLE:
-            if self.tpu_local_core_rank == 0:
+            if True: #self.tpu_local_core_rank == 0:
                 self.get_train_dataloader()
                 self.get_test_dataloaders()
                 self.get_val_dataloaders()
