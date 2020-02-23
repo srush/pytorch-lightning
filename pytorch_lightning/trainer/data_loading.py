@@ -211,10 +211,9 @@ class TrainerDataLoadingMixin(ABC):
         :return:
         """
 
-        if not self.use_tpu or self.tpu_local_core_rank == 0:
-            self.init_train_dataloader(model)
-            self.init_test_dataloader(model)
-            self.init_val_dataloader(model)
+        self.init_train_dataloader(model)
+        self.init_test_dataloader(model)
+        self.init_val_dataloader(model)
 
         if self.use_ddp or self.use_ddp2:
             # wait for all processes to catch up
@@ -228,13 +227,15 @@ class TrainerDataLoadingMixin(ABC):
         # on TPUs load each dataloader only on process 0
         # this will trigger the data downloads
         if self.use_tpu and XLA_AVAILABLE:
-            if self.tpu_local_core_rank == 0:
+            #torch_xla.core.xla_model.rendezvous("pl.TrainerDataLoadingMixin.get_dataloaders.start")
+
+            if True or self.tpu_local_core_rank == 0:
                 self.get_train_dataloader()
                 self.get_test_dataloaders()
                 self.get_val_dataloaders()
 
             # wait for all processes to catch up
-            torch_xla.core.xla_model.rendezvous("pl.TrainerDataLoadingMixin.get_dataloaders")
+            #torch_xla.core.xla_model.rendezvous("pl.TrainerDataLoadingMixin.get_dataloaders.end")
 
         # support IterableDataset for train data
         self.is_iterable_train_dataloader = (
