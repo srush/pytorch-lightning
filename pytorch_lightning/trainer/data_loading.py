@@ -211,9 +211,10 @@ class TrainerDataLoadingMixin(ABC):
         :return:
         """
 
-        self.init_train_dataloader(model)
-        self.init_test_dataloader(model)
-        self.init_val_dataloader(model)
+        if not self.use_tpu or self.tpu_local_core_rank == 0:
+            self.init_train_dataloader(model)
+            self.init_test_dataloader(model)
+            self.init_val_dataloader(model)
 
         if self.use_ddp or self.use_ddp2:
             # wait for all processes to catch up
@@ -227,7 +228,7 @@ class TrainerDataLoadingMixin(ABC):
         # on TPUs load each dataloader only on process 0
         # this will trigger the data downloads
         if self.use_tpu and XLA_AVAILABLE:
-            if True: #self.tpu_local_core_rank == 0:
+            if self.tpu_local_core_rank == 0:
                 self.get_train_dataloader()
                 self.get_test_dataloaders()
                 self.get_val_dataloaders()
