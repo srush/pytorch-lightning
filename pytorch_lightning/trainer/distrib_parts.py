@@ -338,6 +338,7 @@ from abc import ABC, abstractmethod
 import logging as log
 import os
 
+import gc
 import torch
 
 from pytorch_lightning.overrides.data_parallel import (
@@ -471,9 +472,13 @@ class TrainerDPMixin(ABC):
         self.run_pretrain_routine(model)
 
     def tpu_train(self, tpu_core_idx, model):
+        log.info("loading model 1")
+
         # put model on tpu
         model.to(xm.xla_device())
-
+        gc.collect()
+        log.info("loading model 2")
+        
         # get the appropriate tpu ranks
         self.tpu_local_core_rank = xm.get_local_ordinal()
         self.tpu_global_core_rank = xm.get_ordinal()
