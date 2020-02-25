@@ -339,6 +339,7 @@ import logging as log
 import os
 
 import gc
+import fcntl
 import torch
 
 from pytorch_lightning.overrides.data_parallel import (
@@ -475,8 +476,14 @@ class TrainerDPMixin(ABC):
         log.info("loading model 1")
 
         # put model on tpu
+        lock_file = "tpu.lock"
+        fd = open(lock_file, "w")
+        fcntl.lockf(fd, fcntl.LOCK_EX)
+        #load a model here
         model.to(xm.xla_device())
         gc.collect()
+        fcntl.lockf(fd, fcntl.LOCK_UN)
+        
         log.info("loading model 2")
         
         # get the appropriate tpu ranks
